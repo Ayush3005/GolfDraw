@@ -140,11 +140,14 @@ export async function runDrawSimulation(drawId: string, mode: DrawMode): Promise
   // 1. Fetch draw from DB
   const { data: draw, error: drawError } = await supabaseAdmin
     .from('draws')
-    .select('total_pool_pence, rollover_amount_pence, subscriber_count')
+    .select('status, winning_numbers, total_pool_pence, rollover_amount_pence, subscriber_count, draw_mode')
     .eq('id', drawId)
     .single()
 
   if (drawError || !draw) throw new Error("Draw not found")
+
+  // Use provided mode or the one from the DB
+  const activeMode = mode || draw.draw_mode
 
   const totalPool = draw.total_pool_pence + (draw.rollover_amount_pence || 0)
   const jackpotPool = Math.floor(totalPool * 0.40)
@@ -186,9 +189,11 @@ export async function runDrawSimulation(drawId: string, mode: DrawMode): Promise
     }
   }
 
-  // 4. Generate winning numbers
+  // 4. Generate winning numbers (or use existing ones if already simulated)
   let winningNumbers: number[]
-  if (mode === 'weighted') {
+  if (draw.status === 'simulated' && draw.winning_numbers && draw.winning_numbers.length > 0) {
+    winningNumbers = draw.winning_numbers
+  } else if (activeMode === 'weighted') {
     winningNumbers = generateWeightedNumbers(allScoreValues, 5)
   } else {
     winningNumbers = generateRandomNumbers(5, 1, 45)
@@ -254,7 +259,9 @@ export async function publishDraw(drawId: string, result: DrawSimulationResult):
       status: 'published',
       published_at: new Date().toISOString(),
       subscriber_count: result.entries.length,
-      // Actual pool might have changed since pending, but we use what was calculated
+      jackpot_amount_pence: result.prizeBreakdown.jackpot,
+      four_match_amount_pence: result.prizeBreakdown.fourMatch,
+      three_match_amount_pence: result.prizeBreakdown.threeMatch,
     })
     .eq('id', drawId)
 
@@ -269,9 +276,11 @@ export async function publishDraw(drawId: string, result: DrawSimulationResult):
     is_winner: e.isWinner
   }))
 
-  const { error: entryError } = await supabaseAdmin
+  // Upsert draw entries and get their IDs
+  const { data: insertedEntries, error: entryError } = await supabaseAdmin
     .from('draw_entries')
     .upsert(entryRows, { onConflict: 'draw_id,user_id' })
+    .select('id, user_id')
 
   if (entryError) throw new Error(`Failed to upsert entries: ${entryError.message}`)
 
@@ -285,13 +294,18 @@ export async function publishDraw(drawId: string, result: DrawSimulationResult):
   )
 
   if (prizeShares.length > 0) {
-    const winnerRows = prizeShares.map(p => ({
-      draw_id: drawId,
-      user_id: p.userId,
-      match_type: p.matchType,
-      prize_amount_pence: p.prizeAmountPence,
-      status: 'pending'
-    }))
+    const winnerRows = prizeShares.map(p => {
+      const entry = insertedEntries?.find(e => e.user_id === p.userId)
+      return {
+        draw_id: drawId,
+        user_id: p.userId,
+        draw_entry_id: entry?.id,
+        match_type: p.matchType,
+        prize_amount_pence: p.prizeAmountPence,
+        verification_status: 'pending',
+        payout_status: 'unpaid'
+      }
+    })
 
     const { error: winnerError } = await supabaseAdmin
       .from('winners')

@@ -56,7 +56,7 @@ export default async function ScoresPage() {
             </div>
             <h2 className="text-xl font-black text-foreground">Add New Score</h2>
           </div>
-          <ScoreEntryForm userId={user.id} />
+          <ScoreEntryForm />
         </CardContent>
       </Card>
 

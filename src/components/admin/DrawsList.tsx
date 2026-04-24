@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Eye } from "lucide-react"
-import { CreateDrawModal } from "./CreateDrawModal"
+import CreateDrawModal from "./CreateDrawModal"
 import { DrawDetailPanel } from "./DrawDetailPanel"
 
 interface DrawsListProps {

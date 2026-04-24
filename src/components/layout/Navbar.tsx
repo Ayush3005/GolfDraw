@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import SignOutButton from "@/components/auth/SignOutButton"
 import { MobileNav } from "./MobileNav"
+import DashboardLink from "@/components/shared/DashboardLink"
 
 export default function Navbar() {
   const { data: session } = useSession()
@@ -29,9 +30,7 @@ export default function Navbar() {
 
           {session?.user ? (
             <div className="flex items-center gap-3">
-              <Link href="/dashboard">
-                <Button className="rounded-full px-6 font-bold bg-primary hover:bg-primary/90 text-white">Dashboard</Button>
-              </Link>
+              <DashboardLink />
               <SignOutButton variant="ghost" className="font-bold" />
             </div>
           ) : (

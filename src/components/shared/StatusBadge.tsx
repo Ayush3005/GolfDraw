@@ -19,7 +19,8 @@ const statusMap: Record<string, { label: string; color: string }> = {
 }
 
 export function StatusBadge({ status, className }: StatusBadgeProps) {
-  const config = statusMap[status.toLowerCase()] || { label: status, color: "bg-muted text-muted-foreground" }
+  const normalizedStatus = (status || "unknown").toLowerCase()
+  const config = statusMap[normalizedStatus] || { label: status || "Unknown", color: "bg-muted text-muted-foreground" }
   
   return (
     <Badge 

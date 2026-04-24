@@ -167,7 +167,7 @@ async function handleCheckoutSessionCompleted(
       ? session.customer
       : (session.customer?.id ?? '')
 
-  console.log(`[webhook] Attempting to upsert subscription for user: ${userId}, plan: ${plan}`)
+
 
   const { error } = await supabaseAdmin.from('subscriptions').upsert(
     {
@@ -187,7 +187,7 @@ async function handleCheckoutSessionCompleted(
     console.error('[webhook] checkout.session.completed: DB upsert failed', error)
     throw error
   } else {
-    console.log(`[webhook] Successfully updated subscription for user ${userId}`)
+
   }
 }
 

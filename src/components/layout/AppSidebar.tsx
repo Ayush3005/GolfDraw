@@ -51,7 +51,6 @@ export function AppSidebar({ variant, user }: AppSidebarProps) {
         variant === "user" ? "top-20" : "top-0 h-screen",
       )}
     >
-
       {/* Nav Links */}
       <nav className="flex-1 px-4 space-y-2 overflow-y-auto pt-6">
         {variant === "admin" && (
@@ -90,7 +89,7 @@ export function AppSidebar({ variant, user }: AppSidebarProps) {
         })}
       </nav>
 
-      {/* User Info & SignOut */}
+      {/* User Info */}
       <div className="p-4 mt-auto border-t border-border bg-muted/30">
         {user && (
           <div className="flex items-center gap-3 px-4 py-3 mb-2 overflow-hidden">
@@ -107,7 +106,6 @@ export function AppSidebar({ variant, user }: AppSidebarProps) {
             </div>
           </div>
         )}
-      
       </div>
     </aside>
   );

@@ -2,6 +2,8 @@ import { auth } from "@/lib/auth/config"
 import { redirect } from "next/navigation"
 import { AppSidebar } from "@/components/layout/AppSidebar"
 import SignOutButton from "@/components/auth/SignOutButton"
+import Link from "next/link"
+import { MobileNav } from "@/components/layout/MobileNav"
 
 export default async function AdminLayout({
   children,
@@ -22,7 +24,15 @@ export default async function AdminLayout({
         }} 
       />
 
-      {/* Admin Header */}
+      {/* Mobile Admin Header */}
+      <header className="fixed top-0 left-0 right-0 h-20 border-b border-border bg-background/80 backdrop-blur-md z-50 flex md:hidden items-center justify-between px-6">
+        <Link href="/admin" className="text-xl font-black tracking-tight text-foreground">
+          Golf<span className="text-primary">Draw</span>
+        </Link>
+        <MobileNav session={session} />
+      </header>
+
+      {/* Admin Header (Desktop) */}
       <header className="fixed top-0 left-[240px] right-0 h-20 border-b border-border bg-card/50 backdrop-blur-md z-30 hidden md:flex items-center justify-between px-10">
         <div>
           <h2 className="text-xl font-black text-foreground">Admin Panel</h2>

@@ -13,6 +13,11 @@ export const metadata: Metadata = {
     template: '%s | GolfDraw'
   },
   description: 'Monthly golf prize draws with charity giving built in.',
+  icons: {
+    icon: '/favicon.png',
+    shortcut: '/favicon.png',
+    apple: '/favicon.png',
+  }
 }
 
 export default function RootLayout({

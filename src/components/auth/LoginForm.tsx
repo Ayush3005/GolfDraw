@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
@@ -46,32 +46,32 @@ export default function LoginForm() {
       password: "",
       rememberMe: false,
     },
-  }); 
+  });
 
   const onSubmit = async (data: LoginValues) => {
     setLoading(true);
     setError(null);
     try {
-      console.log("[LOGIN] Attempting sign in with:", data.email);
-      
       const result = await signIn("credentials", {
         email: data.email.trim().toLowerCase(),
         password: data.password,
-        redirect: false,
+        redirect: false, // Mandatory for manual role-based redirect
       });
 
-      console.log("[LOGIN] Sign in result:", result);
-
       if (result?.error) {
-        console.error("[LOGIN] Auth error:", result.error);
-        setError("Invalid email or password. Please try again.");
+        setError("Invalid email or password");
       } else if (result?.ok) {
-        console.log("[LOGIN] Success, redirecting to dashboard");
-        router.push("/dashboard");
-        router.refresh();
+        // Fetch session to check role
+        const session = await getSession();
+        
+        if (session?.user?.role === "admin") {
+          router.push("/admin");
+        } else {
+          router.push("/dashboard");
+        }
+        router.refresh(); // Sync server state
       }
     } catch (err) {
-      console.error("[LOGIN] Unexpected error:", err);
       setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);

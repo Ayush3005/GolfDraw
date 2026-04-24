@@ -38,7 +38,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 
   const priceId = PRICE_IDS[plan]
-  console.log(`[stripe/checkout] Plan: ${plan}, PriceID: ${priceId}`)
+
   
   if (!priceId || priceId.startsWith('price_placeholder')) {
     return NextResponse.json(

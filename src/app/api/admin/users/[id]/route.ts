@@ -4,7 +4,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin"
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth()
   if (!session || session.user?.role !== 'admin') {
@@ -59,7 +59,7 @@ export async function GET(
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth()
   if (!session || session.user?.role !== 'admin') {

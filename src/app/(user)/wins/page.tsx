@@ -4,10 +4,13 @@ import { supabaseAdmin } from "@/lib/supabase/admin"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { EmptyState } from "@/components/shared/EmptyState"
 import { Trophy } from "lucide-react"
+import { UserWinsClient } from "@/components/user/UserWinsClient"
 
 export default async function WinsPage() {
   const session = await auth()
-  const email = session?.user?.email || ""
+  if (!session?.user) redirect("/login")
+  
+  const email = session.user.email || ""
 
   const { data: user } = await supabaseAdmin
     .from("users")
@@ -32,9 +35,7 @@ export default async function WinsPage() {
       />
 
       {wins && wins.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Winners list would go here */}
-        </div>
+        <UserWinsClient initialWins={wins} />
       ) : (
         <EmptyState 
           icon={Trophy}

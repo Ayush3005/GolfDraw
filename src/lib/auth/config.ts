@@ -4,8 +4,6 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
-console.log("[CONFIG] Auth config loading... supabaseAdmin:", !!supabaseAdmin);
-
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     CredentialsProvider({
@@ -16,58 +14,29 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
       async authorize(credentials) {
         try {
-          console.log("[AUTH] authorize() called with email:", credentials?.email);
-          
           if (!credentials?.email || !credentials?.password) {
-            console.error("[AUTH] Missing email or password");
             return null;
           }
 
           const email = (credentials.email as string).trim().toLowerCase();
           const password = credentials.password as string;
 
-          console.log("[AUTH] Normalized email:", email);
-
           // 1. Fetch auth_accounts first by email
           const { data: authAccount, error: authError } = await supabaseAdmin
             .from("auth_accounts")
             .select("user_id, password_hash")
             .eq("email", email)
-            .single();
+            .maybeSingle();
 
-          console.log("[AUTH] auth_accounts query:", {
-            error: authError?.message,
-            hasAccount: !!authAccount,
-            email: email,
-          });
-
-          if (authError) {
-          const errorMsg = String(authError).toLowerCase();
-          if (errorMsg.includes('malware') || errorMsg.includes('cisco') || errorMsg.includes('block')) {
-            console.error("[AUTH] NETWORK BLOCKED: Supabase domain is blocked by firewall/ISP");
-            console.error("[AUTH] Try: use VPN, different network, or contact network admin");
-          } else {
-            console.error("[AUTH] Auth account query failed:", authError);
-          }
-          }
-
-          if (!authAccount) {
-            console.error("[AUTH] No auth account found for email:", email);
+          if (authError || !authAccount) {
             return null;
           }
 
           // 2. Verify password hash
-          console.log("[AUTH] Password hash exists, comparing...");
-          
           try {
             const isPasswordCorrect = await bcrypt.compare(password, authAccount.password_hash);
-            
-            if (!isPasswordCorrect) {
-              console.error("[AUTH] Password mismatch for:", email);
-              return null;
-            }
+            if (!isPasswordCorrect) return null;
           } catch (bcryptErr) {
-            console.error("[AUTH] bcrypt.compare failed:", (bcryptErr as Error).message);
             return null;
           }
 
@@ -76,25 +45,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             .from("users")
             .select("id, email, full_name, role")
             .eq("id", authAccount.user_id)
-            .single();
+            .maybeSingle();
 
-          console.log("[AUTH] user profile query:", {
-            error: userError?.message,
-            hasUser: !!user,
-            userId: authAccount.user_id,
-          });
-
-          if (userError) {
-            console.error("[AUTH] User profile query failed:", userError.message, userError.code);
+          if (userError || !user) {
             return null;
           }
-
-          if (!user) {
-            console.error("[AUTH] User profile not found for ID:", authAccount.user_id);
-            return null;
-          }
-
-          console.log("[AUTH] Authorization successful:", user.id);
 
           return {
             id: user.id,
@@ -103,8 +58,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             role: user.role,
           };
         } catch (error) {
-          console.error("[AUTH] FATAL ERROR in authorize():", error instanceof Error ? error.message : String(error));
-          console.error("[AUTH] Full error:", error);
           return null;
         }
       },
@@ -126,6 +79,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.full_name = token.full_name as string;
       }
       return session;
+    },
+    async redirect({ url, baseUrl }) {
+      // Allow relative URLs
+      if (url.startsWith('/')) return `${baseUrl}${url}`
+      // Allow same origin
+      if (url.startsWith(baseUrl)) return url
+      return baseUrl
     },
   },
   pages: {

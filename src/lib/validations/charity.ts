@@ -5,7 +5,8 @@ export const charitySchema = z.object({
   description: z.string().min(10).max(500),
   image_url: z.string().url().optional().or(z.literal('')),
   website_url: z.string().url().optional().or(z.literal('')),
-  is_featured: z.boolean().default(false)
+  is_featured: z.boolean().default(false),
+  is_active: z.boolean().default(true)
 })
 
 export const charitySelectionSchema = z.object({

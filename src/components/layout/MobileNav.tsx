@@ -6,7 +6,21 @@ import { useState, useEffect } from "react"
 import { createPortal } from "react-dom"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Menu, X, LayoutDashboard, LogOut, Home, Info, CreditCard, HelpCircle } from "lucide-react"
+import { 
+  Menu, 
+  X, 
+  LayoutDashboard, 
+  LogOut, 
+  Home, 
+  Info, 
+  CreditCard, 
+  HelpCircle,
+  Users,
+  Ticket,
+  Heart,
+  Trophy,
+  BarChart3
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { signOut } from "next-auth/react"
 import { cn } from "@/lib/utils"
@@ -19,6 +33,7 @@ export function MobileNav({ session }: MobileNavProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
   const pathname = usePathname()
+  const isAdmin = session?.user?.role === 'admin'
 
   useEffect(() => {
     setMounted(true)
@@ -43,7 +58,15 @@ export function MobileNav({ session }: MobileNavProps) {
     { href: "/", label: "Home", icon: Home },
     { href: "/#how-it-works", label: "How It Works", icon: Info },
     { href: "/pricing", label: "Pricing", icon: CreditCard },
-    { href: "/faq", label: "FAQ", icon: HelpCircle },
+  ]
+
+  const adminLinks = [
+    { href: "/admin", label: "Overview", icon: LayoutDashboard },
+    { href: "/admin/users", label: "Users", icon: Users },
+    { href: "/admin/draws", label: "Draws", icon: Ticket },
+    { href: "/admin/charities", label: "Charities", icon: Heart },
+    { href: "/admin/winners", label: "Winners", icon: Trophy },
+    { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
   ]
 
   const menuContent = (
@@ -57,7 +80,7 @@ export function MobileNav({ session }: MobileNavProps) {
     >
       <div className="flex flex-col h-full p-6 overflow-y-auto">
         {/* Header inside the full-screen menu */}
-        <div className="flex justify-between items-center mb-12">
+        <div className="flex justify-between items-center mb-8">
           <Link href="/" onClick={closeMenu} className="text-2xl font-black tracking-tight text-foreground">
             Golf<span className="text-primary">Draw</span>
           </Link>
@@ -67,22 +90,22 @@ export function MobileNav({ session }: MobileNavProps) {
         </div>
 
         {/* Main Links */}
-        <nav className="flex flex-col space-y-4 flex-grow px-2">
+        <nav className="flex flex-col space-y-3 flex-grow px-2">
           {navLinks.map((link) => {
-            const isActive = pathname === link.href || (pathname === '/' && link.href === '/#how-it-works' && false)
+            const isActive = pathname === link.href
             return (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={closeMenu}
                 className={cn(
-                  "flex items-center gap-6 p-4 rounded-2xl text-2xl font-black transition-all",
+                  "flex items-center gap-4 p-4 rounded-2xl text-xl font-black transition-all",
                   isActive 
                     ? "bg-primary text-white shadow-lg shadow-primary/20" 
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}
               >
-                <link.icon className="h-8 w-8" />
+                <link.icon className="h-6 w-6" />
                 {link.label}
               </Link>
             )
@@ -90,23 +113,55 @@ export function MobileNav({ session }: MobileNavProps) {
 
           {session && (
             <>
-              <div className="h-px bg-border my-6" />
-              <Link
-                href="/dashboard"
-                onClick={closeMenu}
-                className="flex items-center gap-6 p-4 rounded-2xl text-2xl font-black text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
-              >
-                <LayoutDashboard className="h-8 w-8" />
-                Dashboard
-              </Link>
+              <div className="h-px bg-border my-4" />
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground px-4 mb-2">
+                {isAdmin ? "Admin Management" : "Account Dashboard"}
+              </p>
+              
+              {(isAdmin ? adminLinks : []).map((link) => {
+                const isActive = pathname === link.href
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={closeMenu}
+                    className={cn(
+                      "flex items-center gap-4 p-4 rounded-2xl text-xl font-black transition-all",
+                      isActive 
+                        ? "bg-primary text-white shadow-lg shadow-primary/20" 
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    )}
+                  >
+                    <link.icon className="h-6 w-6" />
+                    {link.label}
+                  </Link>
+                )
+              })}
+
+              {!isAdmin && (
+                <Link
+                  href="/dashboard"
+                  onClick={closeMenu}
+                  className={cn(
+                    "flex items-center gap-4 p-4 rounded-2xl text-xl font-black transition-all",
+                    pathname === "/dashboard" 
+                      ? "bg-primary text-white shadow-lg shadow-primary/20" 
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  )}
+                >
+                  <LayoutDashboard className="h-6 w-6" />
+                  Dashboard
+                </Link>
+              )}
+
               <button
                 onClick={() => {
                   closeMenu()
                   signOut()
                 }}
-                className="flex items-center gap-6 p-4 rounded-2xl text-2xl font-black text-destructive hover:bg-destructive/10 transition-all w-full text-left"
+                className="flex items-center gap-4 p-4 rounded-2xl text-xl font-black text-destructive hover:bg-destructive/10 transition-all w-full text-left"
               >
-                <LogOut className="h-8 w-8" />
+                <LogOut className="h-6 w-6" />
                 Sign Out
               </button>
             </>

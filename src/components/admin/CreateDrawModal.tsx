@@ -26,7 +26,7 @@ interface CreateDrawModalProps {
   onOpenChange: (open: boolean) => void
 }
 
-export function CreateDrawModal({ isOpen, onOpenChange }: CreateDrawModalProps) {
+export default function CreateDrawModal({ isOpen, onOpenChange }: CreateDrawModalProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [drawMonth, setDrawMonth] = useState("")
@@ -46,7 +46,7 @@ export function CreateDrawModal({ isOpen, onOpenChange }: CreateDrawModalProps) 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           draw_month: `${drawMonth}-01`, // Ensure it's the first of the month
-          draw_mode: drawMode,
+          mode: drawMode,
         }),
       })
 
@@ -84,7 +84,12 @@ export function CreateDrawModal({ isOpen, onOpenChange }: CreateDrawModalProps) 
           </div>
           <div className="space-y-2">
             <Label htmlFor="draw_mode">Draw Mode</Label>
-            <Select value={drawMode} onValueChange={(val) => val && setDrawMode(val)}>
+            <Select 
+              value={drawMode} 
+              onValueChange={(val) => {
+                if (val) setDrawMode(val)
+              }}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select mode" />
               </SelectTrigger>
