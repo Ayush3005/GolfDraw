@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Stripe Webhook Handler
  *
@@ -40,8 +41,13 @@ const AMOUNT_PENCE: Record<SubscriptionPlan, number> = {
 export const dynamic = 'force-dynamic'
 
 /** Convert Unix epoch seconds → ISO string */
-function toIso(unix: number): string {
-  return new Date(unix * 1000).toISOString()
+function toIso(unix: number | undefined | null): string | null {
+  if (!unix || isNaN(unix)) return null
+  try {
+    return new Date(unix * 1000).toISOString()
+  } catch {
+    return null
+  }
 }
 
 // ── Main POST handler ─────────────────────────────────────────────────────────
@@ -161,6 +167,8 @@ async function handleCheckoutSessionCompleted(
       ? session.customer
       : (session.customer?.id ?? '')
 
+  console.log(`[webhook] Attempting to upsert subscription for user: ${userId}, plan: ${plan}`)
+
   const { error } = await supabaseAdmin.from('subscriptions').upsert(
     {
       user_id: userId,
@@ -172,13 +180,14 @@ async function handleCheckoutSessionCompleted(
       current_period_end: toIso((stripeSub as any).current_period_end),
       amount_pence: AMOUNT_PENCE[plan] ?? 1999,
     },
-    { onConflict: 'user_id' }
+    { onConflict: 'stripe_customer_id' }
   )
-
 
   if (error) {
     console.error('[webhook] checkout.session.completed: DB upsert failed', error)
     throw error
+  } else {
+    console.log(`[webhook] Successfully updated subscription for user ${userId}`)
   }
 }
 

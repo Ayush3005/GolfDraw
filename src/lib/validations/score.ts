@@ -11,11 +11,11 @@ export const scoreInsertSchema = z.object({
 })
 
 export const scoreUpdateSchema = scoreInsertSchema.extend({
-  id: z.string().uuid()
+  id: z.string().regex(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/, "Invalid ID format")
 })
 
 export const scoreDeleteSchema = z.object({
-  id: z.string().uuid()
+  id: z.string().regex(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/, "Invalid ID format")
 })
 
 export type ScoreInsert = z.infer<typeof scoreInsertSchema>

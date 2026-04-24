@@ -1,52 +1,56 @@
 "use client"
-import Link from 'next/link'
-import { useSession } from 'next-auth/react'
-import SignOutButton from '@/components/auth/SignOutButton'
-import { Button } from '@/components/ui/button'
+
+import Link from "next/link"
+import { useSession } from "next-auth/react"
+import { Button } from "@/components/ui/button"
+import SignOutButton from "@/components/auth/SignOutButton"
+import { MobileNav } from "./MobileNav"
 
 export default function Navbar() {
   const { data: session } = useSession()
 
   return (
-    <nav className="border-b border-border bg-background sticky top-0 z-50">
-      <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-        <Link href="/" className="text-xl font-semibold tracking-tight hover:opacity-80 transition-opacity">
+    <nav className="h-20 border-b border-border bg-background/80 backdrop-blur-md sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
+        <Link href="/" className="text-2xl font-black tracking-tight text-foreground hover:opacity-80 transition-opacity">
           Golf<span className="text-primary">Draw</span>
         </Link>
 
-        <div className="flex items-center gap-4">
+        {/* Desktop Links */}
+        <div className="hidden md:flex items-center gap-2">
+          <Button variant="ghost" className="font-bold text-muted-foreground hover:text-foreground" asChild>
+            <Link href="/#how-it-works">How It Works</Link>
+          </Button>
+          <Button variant="ghost" className="font-bold text-muted-foreground hover:text-foreground" asChild>
+            <Link href="/pricing">Pricing</Link>
+          </Button>
+          
+          <div className="w-px h-6 bg-border mx-4" />
+
           {session?.user ? (
-            <>
-              <span className="text-sm text-muted-foreground hidden lg:block max-w-[200px] truncate">
-                {session.user.email}
-              </span>
-              <div className="flex items-center gap-2">
-                <Link href="/dashboard">
-                  <Button variant="ghost" size="sm">Dashboard</Button>
-                </Link>
-                <Link href="/scores">
-                  <Button variant="ghost" size="sm">Scores</Button>
-                </Link>
-                {session.user.role === 'admin' && (
-                  <Link href="/admin">
-                    <Button variant="ghost" size="sm" className="text-amber-600 hover:text-amber-700 hover:bg-amber-50">Admin</Button>
-                  </Link>
-                )}
-                <div className="ml-2 pl-2 border-l border-border">
-                  <SignOutButton variant="outline" />
-                </div>
-              </div>
-            </>
+            <div className="flex items-center gap-3">
+              <Link href="/dashboard">
+                <Button className="rounded-full px-6 font-bold bg-primary hover:bg-primary/90 text-white">Dashboard</Button>
+              </Link>
+              <SignOutButton variant="ghost" className="font-bold" />
+            </div>
           ) : (
-            <>
+            <div className="flex items-center gap-3">
               <Link href="/login">
-                <Button variant="ghost" size="sm">Sign In</Button>
+                <Button variant="ghost" className="font-bold">Sign In</Button>
               </Link>
               <Link href="/signup">
-                <Button size="sm">Get Started</Button>
+                <Button className="rounded-full px-8 font-bold bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20">
+                  Get Started
+                </Button>
               </Link>
-            </>
+            </div>
           )}
+        </div>
+
+        {/* Mobile Toggle */}
+        <div className="md:hidden">
+          <MobileNav session={session} />
         </div>
       </div>
     </nav>
